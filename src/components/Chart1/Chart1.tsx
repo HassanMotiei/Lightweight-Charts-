@@ -140,16 +140,19 @@ const Page = () => {
 		if (chartContainerRef.current) {
 			const chart = createChart(chartContainerRef.current);
 
-			// اعمال تنظیمات چارت، شامل تنظیمات ظاهری مانند رنگ زمینه و متن
+			// ایجاد چارت با استفاده از مخزن مربوطه در DOM
 			chart.applyOptions({
+				// تنظیمات ظاهری چارت از جمله رنگ زمینه و متن
 				layout: {
 					background: { color: "#222" },
 					textColor: "#DDD",
 				},
 				grid: {
+					// تنظیمات خطوط شبکه افقی و عمودی
 					vertLines: { color: "#444" },
 					horzLines: { color: "#444" },
 				},
+				// تنظیم عرض و ارتفاع چارت
 				width: chartContainerRef.current.clientWidth,
 				height: 650,
 				crosshair: {
@@ -167,6 +170,7 @@ const Page = () => {
 				},
 				localization: {
 					locale: "en-DE",
+					// تنظیم فرمت زمان برای crosshair
 					timeFormatter: (time: TimeType) => {
 						const date = new Date(time * 1000);
 						const dateFormatter = new Intl.DateTimeFormat("en-DE", {
@@ -178,6 +182,7 @@ const Page = () => {
 						});
 						return dateFormatter.format(date);
 					},
+					// تنظیم فرمت قیمت
 					priceFormatter: (price: number | bigint) => {
 						const myPrice = new Intl.NumberFormat("en-DE", {
 							style: "currency",
@@ -209,7 +214,7 @@ const Page = () => {
 				priceScaleId: "left",
 			});
 
-			// اعمال تنظیمات مربوط به محورهای قیمت
+			// اعمال تنظیمات محورهای قیمت
 			chart.applyOptions({
 				rightPriceScale: {
 					visible: true,
@@ -228,6 +233,7 @@ const Page = () => {
 				rightOffset: 20,
 				fixLeftEdge: true,
 				fixRightEdge: true,
+				// تنظیم فرمت نشانگرهای زمان
 				tickMarkFormatter: (time: TimeType, tickMarkType: any) => {
 					const date = new Date(time * 1000);
 
@@ -337,7 +343,7 @@ const Page = () => {
 				}
 			});
 
-			// Fit content
+			// تنظیم مقیاس زمانی به طور خودکار
 			chart.timeScale().fitContent();
 
 			// پاک کردن چارت و حذف رویدادگیر
@@ -347,6 +353,7 @@ const Page = () => {
 			};
 		}
 	}, [initialCandlestickData, initialLineData]);
+
 
 	return (
 		<div ref={chartContainerRef} className="mt-5">
