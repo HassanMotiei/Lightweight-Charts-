@@ -138,39 +138,37 @@ const Page = () => {
 
 	useEffect(() => {
 		if (chartContainerRef.current) {
+			// ایجاد یک چارت با استفاده از مخزن مربوطه در DOM
 			const chart = createChart(chartContainerRef.current);
 
-			// ایجاد چارت با استفاده از مخزن مربوطه در DOM
+			// تنظیمات ظاهری چارت از جمله رنگ زمینه و رنگ متن
 			chart.applyOptions({
-				// تنظیمات ظاهری چارت از جمله رنگ زمینه و متن
 				layout: {
-					background: { color: "#222" },
-					textColor: "#DDD",
+					background: { color: "#222" }, // رنگ زمینه چارت
+					textColor: "#DDD", // رنگ متن
 				},
 				grid: {
-					// تنظیمات خطوط شبکه افقی و عمودی
-					vertLines: { color: "#444" },
-					horzLines: { color: "#444" },
+					vertLines: { color: "#444" }, // رنگ خطوط عمودی شبکه
+					horzLines: { color: "#444" }, // رنگ خطوط افقی شبکه
 				},
-				// تنظیم عرض و ارتفاع چارت
-				width: chartContainerRef.current.clientWidth,
-				height: 650,
+				width: chartContainerRef.current.clientWidth, // عرض چارت
+				height: 650, // ارتفاع چارت
 				crosshair: {
-					mode: CrosshairMode.Normal, // تنظیم حالت معمولی برای crosshair
+					mode: CrosshairMode.Normal, // حالت عادی برای crosshair
 					vertLine: {
-						width: 5 as DeepPartial<LineWidth>,
-						color: "#C3BCDB44",
-						style: LineStyle.Solid,
-						labelBackgroundColor: "#9B7DFF",
+						width: 5 as DeepPartial<LineWidth>, // عرض خط عمودی crosshair
+						color: "#C3BCDB44", // رنگ خط عمودی crosshair
+						style: LineStyle.Solid, // استایل خط
+						labelBackgroundColor: "#9B7DFF", // رنگ پس‌زمینه برچسب
 					},
 					horzLine: {
-						color: "#9B7DFF",
-						labelBackgroundColor: "#9B7DFF",
+						color: "#9B7DFF", // رنگ خط افقی crosshair
+						labelBackgroundColor: "#9B7DFF", // رنگ پس‌زمینه برچسب
 					},
 				},
 				localization: {
-					locale: "en-DE",
-					// تنظیم فرمت زمان برای crosshair
+					locale: "en-DE", // تنظیمات مربوط به محلی سازی برای فرمت زمان و قیمت
+					// تابعی برای فرمت دهی به زمان
 					timeFormatter: (time: TimeType) => {
 						const date = new Date(time * 1000);
 						const dateFormatter = new Intl.DateTimeFormat("en-DE", {
@@ -182,7 +180,7 @@ const Page = () => {
 						});
 						return dateFormatter.format(date);
 					},
-					// تنظیم فرمت قیمت
+					// تابعی برای فرمت دهی به قیمت
 					priceFormatter: (price: number | bigint) => {
 						const myPrice = new Intl.NumberFormat("en-DE", {
 							style: "currency",
@@ -194,45 +192,45 @@ const Page = () => {
 				},
 			});
 
-			const lineSeries = chart.addLineSeries();
-			const candlestickSeries = chart.addCandlestickSeries();
+			const lineSeries = chart.addLineSeries(); // ایجاد یک سری خطی برای نمودار خطی
+			const candlestickSeries = chart.addCandlestickSeries(); // ایجاد یک سری کندل‌استیک برای نمودار کندل‌استیک
 
-			// اعمال تنظیمات چارت کندل‌استیک
+			// تنظیم تنظیمات مختلف برای نمودار کندل‌استیک
 			candlestickSeries.applyOptions({
-				upColor: "#26a69a",
-				downColor: "#ef5350",
-				borderVisible: false,
-				wickUpColor: "#26a69a",
-				wickDownColor: "#ef5350",
-				priceScaleId: "right",
+				upColor: "#26a69a", // رنگ کندل هایی که قیمت آنها افزایش می‌یابد
+				downColor: "#ef5350", // رنگ کندل هایی که قیمت آنها کاهش می‌یابد
+				borderVisible: false, // نمایش حاشیه کندل‌ها
+				wickUpColor: "#26a69a", // رنگ موشک‌های بالایی کندل‌ها
+				wickDownColor: "#ef5350", // رنگ موشک‌های پایینی کندل‌ها
+				priceScaleId: "right", // شناسه محور قیمت
 			});
 
-			// اعمال تنظیمات چارت خطی
+			// تنظیم تنظیمات برای نمودار خطی
 			lineSeries.applyOptions({
-				color: "#2962FF",
-				lineWidth: 1,
-				priceScaleId: "left",
+				color: "#2962FF", // رنگ خط
+				lineWidth: 1, // عرض خط
+				priceScaleId: "left", // شناسه محور قیمت
 			});
 
-			// اعمال تنظیمات محورهای قیمت
+			// تنظیم تنظیمات مختلف برای محورهای قیمت
 			chart.applyOptions({
 				rightPriceScale: {
-					visible: true,
-					borderColor: "#71649C",
+					visible: true, // نمایش محور قیمت سمت راست
+					borderColor: "#71649C", // رنگ حاشیه محور قیمت سمت راست
 				},
 				leftPriceScale: {
-					visible: true,
-					borderColor: "#71649C",
+					visible: true, // نمایش محور قیمت سمت چپ
+					borderColor: "#71649C", // رنگ حاشیه محور قیمت سمت چپ
 				},
 			});
 
-			// اعمال تنظیمات محور زمان
+			// تنظیم تنظیمات برای محور زمان
 			chart.timeScale().applyOptions({
-				borderColor: "#71649C",
-				timeVisible: true,
-				rightOffset: 20,
-				fixLeftEdge: true,
-				fixRightEdge: true,
+				borderColor: "#71649C", // رنگ حاشیه محور زمان
+				timeVisible: true, // نمایش محور زمان
+				rightOffset: 20, // افست محور زمان از سمت راست
+				fixLeftEdge: true, // ثابت نگه داشتن لبه چپ
+				fixRightEdge: true, // ثابت نگه داشتن لبه راست
 				// تنظیم فرمت نشانگرهای زمان
 				tickMarkFormatter: (time: TimeType, tickMarkType: any) => {
 					const date = new Date(time * 1000);
@@ -276,24 +274,23 @@ const Page = () => {
 				},
 			});
 
-			// تابعی برای پاسخگویی به تغییر اندازه پنجره
+			// تعریف رویداد برای تغییر اندازه پنجره
 			const handleResize = () => {
 				chart.applyOptions({
 					width: chartContainerRef.current?.clientWidth,
 				});
 			};
 
-			// اضافه کردن رویدادگیر برای تغییر اندازه پنجره
 			window.addEventListener("resize", handleResize);
 
-			// تنظیم داده‌ها برای چارت‌ها
+			// تنظیم داده های اولیه برای نمودار کندل‌استیک و نمودار خطی
 			candlestickSeries.setData(initialCandlestickData);
 			lineSeries.setData(initialLineData);
 
 			// اضافه کردن نشانگرها به چارت
 			candlestickSeries.setMarkers(markers);
 
-			// پاسخگویی به حرکت crosshair و به روز رسانی اطلاعات نمودار
+			// اشتراک گذاری حرکت crosshair
 			chart.subscribeCrosshairMove((param) => {
 				if (param.time) {
 					const candlePriceData =
@@ -343,16 +340,17 @@ const Page = () => {
 				}
 			});
 
-			// تنظیم مقیاس زمانی به طور خودکار
+			// تنظیم تناسب اندازه چارت
 			chart.timeScale().fitContent();
 
-			// پاک کردن چارت و حذف رویدادگیر
+			// حذف چارت و رویداد گیر
 			return () => {
 				chart.remove();
 				window.removeEventListener("resize", handleResize);
 			};
 		}
 	}, [initialCandlestickData, initialLineData]);
+
 
 
 	return (
