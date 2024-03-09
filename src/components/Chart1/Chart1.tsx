@@ -316,6 +316,7 @@ const Page = () => {
 						linePriceData?.value
 					);
 
+					// tooltip
 					const shiftedCoordinate = param.point?.x;
 
 					if (tooltipRef.current) {
