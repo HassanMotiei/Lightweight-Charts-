@@ -128,11 +128,13 @@ const Chart: React.FC<CandlestickTypes> = () => {
 
 	return (
 		<div>
-			<CandleChart
-				initialCandleData={initialCandleData}
-				highestHighTime={highestHighTime}
-				lowestLowTime={lowestLowTime}
-			/>
+			{highestHighTime !== 0 && lowestLowTime !== 0 && (
+				<CandleChart
+					initialCandleData={initialCandleData}
+					highestHighTime={highestHighTime}
+					lowestLowTime={lowestLowTime}
+				/>
+			)}
 		</div>
 	);
 };

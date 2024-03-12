@@ -43,71 +43,26 @@ const Page = ({
 	const [currentTime, setCurrentTime] = useState<string | null>(null);
 	const [showTooltip, setShowTooltip] = useState<boolean>(false);
 
-	// const initialLineData = initialCandleData.map((item) => ({
-	// 	time: item.time,
-	// 	value: (item.close + item.high) / 2,
-	// }));
-
-	const prevHighestHigh = useRef(-1);
-	const [highestHigh, setHighestHigh] = useState(0);
-
-	useEffect(() => {
-		if (
-			JSON.stringify(highestHighTime) !==
-			JSON.stringify(prevHighestHigh.current)
-		) {
-			if (highestHighTime !== 0) {
-				setHighestHigh(highestHighTime);
-				prevHighestHigh.current = highestHighTime;
-			}
-		}
-	}, [highestHighTime]);
-
-	const prevLowestLow = useRef(-1);
-	const [lowestLow, setLowestLow] = useState(0);
-
-	useEffect(() => {
-		if (
-			JSON.stringify(lowestLowTime) !==
-			JSON.stringify(prevLowestLow.current)
-		) {
-			if (lowestLowTime !== 0) {
-				setLowestLow(lowestLowTime);
-				prevLowestLow.current = lowestLowTime;
-			}
-		}
-	}, [lowestLowTime]);
-
-	const [dataLoaded, setDataLoaded] = useState(false);
-
-	// کد بارگیری داده‌ها با تاخیر دو ثانیه
-	useEffect(() => {
-		setTimeout(() => {
-			// در اینجا داده‌های بارگیری شده
-			setDataLoaded(true);
-			// مقادیر highestHigh و lowestLow بارگیری شده است، می‌توان آن‌ها را نمایش داد
-		}, 5000);
-	}, []);
-
-	const markers: Markers[] = [];
-	if (dataLoaded) {
-			markers.push({
-				time: highestHigh,
+		// حالا مقادیر مورد نیاز را به markers اضافه می‌کنیم
+		const markers: Markers[] = [
+			{
+				time: lowestLowTime,
 				position: "belowBar",
-				color: "#f68410",
-				shape: "arrowDown",
-				text: "Highest high",
-				size: 1,
-			});
-			markers.push({
-				time: lowestLow,
-				position: "aboveBar",
-				color: "#f68410",
+				color: "#dc2626",
 				shape: "arrowUp",
 				text: "Lowest low",
 				size: 1,
-			});
-	}
+			},
+			{
+				time: highestHighTime,
+				position: "aboveBar",
+				color: "#65a30d",
+				shape: "arrowDown",
+				text: "Highest high",
+				size: 1,
+			},
+		];
+
 
 	useEffect(() => {
 		if (chartContainerRef.current) {
@@ -218,24 +173,32 @@ const Page = ({
 				// تنظیم فرمت دهی به زمان و تاریخ
 				tickMarkFormatter: (time: any, tickMarkType: any) => {
 					const date = new Date(time);
+					let formattedTime = "";
+
 					switch (tickMarkType) {
 						case TickMarkType.Year:
-							// استفاده از تابع Intl.DateTimeFormat برای فرمت دهی به سال
 							const yearFormatter = new Intl.DateTimeFormat(
 								"en-DE",
-								{ year: "numeric" }
+								{
+									year: "numeric",
+								}
 							);
-							return yearFormatter.format(date);
+							formattedTime = yearFormatter.format(date);
+							break;
 						case TickMarkType.Month:
-							// استفاده از تابع Intl.DateTimeFormat برای فرمت دهی به ماه
+							// اینجا برای نمایش ماه از فرمت مخصوص ماه استفاده می‌شود
 							const monthFormatter = new Intl.DateTimeFormat(
 								"en-DE",
-								{ month: "short" }
+								{
+									month: "short",
+								}
 							);
-							return monthFormatter.format(date);
+							formattedTime = monthFormatter.format(date);
+							break;
 						case TickMarkType.DayOfMonth:
 							// استفاده از تابع Intl.DateTimeFormat برای فرمت دهی به روز ماه
-							return date.getUTCDate(); // برای تاریخ‌های ماهانه از getUTCDate استفاده کنید
+							formattedTime = date.getUTCDate().toString();
+							break;
 						case TickMarkType.Time:
 							// استفاده از تابع Intl.DateTimeFormat برای فرمت دهی به زمان
 							const timeFormatter = new Intl.DateTimeFormat(
@@ -245,7 +208,8 @@ const Page = ({
 									minute: "numeric",
 								}
 							);
-							return timeFormatter.format(date);
+							formattedTime = timeFormatter.format(date);
+							break;
 						case TickMarkType.TimeWithSeconds:
 							// استفاده از تابع Intl.DateTimeFormat برای فرمت دهی به زمان با ثانیه
 							const timeWithSecondsFormatter =
@@ -254,10 +218,15 @@ const Page = ({
 									minute: "numeric",
 									second: "numeric",
 								});
-							return timeWithSecondsFormatter.format(date);
+							formattedTime =
+								timeWithSecondsFormatter.format(date);
+							break;
 						default:
-							return "";
+							formattedTime = "";
+							break;
 					}
+
+					return formattedTime;
 				},
 			});
 
