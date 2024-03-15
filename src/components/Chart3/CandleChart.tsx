@@ -43,26 +43,31 @@ const Page = ({
 	const [currentTime, setCurrentTime] = useState<string | null>(null);
 	const [showTooltip, setShowTooltip] = useState<boolean>(false);
 
-		// حالا مقادیر مورد نیاز را به markers اضافه می‌کنیم
-		const markers: Markers[] = [
-			{
-				time: lowestLowTime,
-				position: "belowBar",
-				color: "#dc2626",
-				shape: "arrowUp",
-				text: "Lowest low",
-				size: 1,
-			},
-			{
-				time: highestHighTime,
-				position: "aboveBar",
-				color: "#65a30d",
-				shape: "arrowDown",
-				text: "Highest high",
-				size: 1,
-			},
-		];
+	// const initialLineData = initialCandleData.map((item) => ({
+	// 	time: item.time,
+	// 	value: (item.close + item.high) / 2,
+	// }));
 
+	// حالا مقادیر مورد نیاز را به markers اضافه می‌کنیم
+
+	const markers: Markers[] = [
+		{
+			time: lowestLowTime,
+			position: "belowBar",
+			color: "#dc2626",
+			shape: "arrowUp",
+			text: "Lowest low",
+			size: 2,
+		},
+		{
+			time: highestHighTime,
+			position: "aboveBar",
+			color: "#65a30d",
+			shape: "arrowDown",
+			text: "Highest high",
+			size: 2,
+		},
+	];
 
 	useEffect(() => {
 		if (chartContainerRef.current) {
@@ -131,6 +136,9 @@ const Page = ({
 				wickUpColor: "#26a69a", // رنگ موشک‌های بالایی کندل‌ها
 				wickDownColor: "#ef5350", // رنگ موشک‌های پایینی کندل‌ها
 				priceScaleId: "right", // شناسه محور قیمت
+				// disabling built-in price lines
+				lastValueVisible: false,
+				priceLineVisible: false,
 			});
 
 			// تنظیم تنظیمات برای نمودار خطی
@@ -154,11 +162,16 @@ const Page = ({
 			// 	rightPriceScale: {
 			// 		visible: true, // نمایش محور قیمت سمت راست
 			// 		borderColor: "#71649C", // رنگ حاشیه محور قیمت سمت راست
+			// 		autoScale: false, // disables auto scaling based on visible content
+			// 		scaleMargins: {
+			// 			top: 0.1,
+			// 			bottom: 0.2,
+			// 		},
 			// 	},
-			// leftPriceScale: {
-			// 	visible: true, // نمایش محور قیمت سمت چپ
-			// 	borderColor: "#71649C", // رنگ حاشیه محور قیمت سمت چپ
-			// },
+			// 	leftPriceScale: {
+			// 		visible: false, // نمایش محور قیمت سمت چپ
+			// 		borderColor: "#71649C", // رنگ حاشیه محور قیمت سمت چپ
+			// 	},
 			// });
 
 			// تنظیم تنظیمات برای محور زمان
@@ -230,6 +243,50 @@ const Page = ({
 				},
 			});
 
+			let minimumPrice = initialCandleData[0].low;
+			let maximumPrice = minimumPrice;
+			for (let i = 1; i < initialCandleData.length; i++) {
+				const price = initialCandleData[i].high;
+				if (price > maximumPrice) {
+					maximumPrice = price;
+				}
+				if (price < minimumPrice) {
+					minimumPrice = price;
+				}
+			}
+			// const avgPrice = (maximumPrice + minimumPrice) / 2;
+
+			const lineWidth = 2;
+			const minPriceLine = {
+				price: minimumPrice,
+				color: "#ef5350",
+				lineWidth: lineWidth,
+				lineStyle: 2, // LineStyle.Dashed
+				axisLabelVisible: true,
+				title: "min price",
+			};
+			// const avgPriceLine = {
+			// 	price: avgPrice,
+			// 	color: "white",
+			// 	lineWidth: lineWidth,
+			// 	lineStyle: 1, // LineStyle.Dotted
+			// 	axisLabelVisible: true,
+			// 	title: "ave price",
+			// };
+			const maxPriceLine = {
+				price: maximumPrice,
+				color: "#26a69a",
+				lineWidth: lineWidth,
+				lineStyle: 2, // LineStyle.Dashed
+				axisLabelVisible: true,
+				title: "max price",
+			};
+
+			candlestickSeries.createPriceLine(minPriceLine);
+			// candlestickSeries.createPriceLine(avgPriceLine);
+			candlestickSeries.createPriceLine(maxPriceLine);
+
+
 			// تعریف رویداد برای تغییر اندازه پنجره
 			const handleResize = () => {
 				chart.applyOptions({
@@ -247,55 +304,55 @@ const Page = ({
 			candlestickSeries.setMarkers(markers);
 
 			// اشتراک گذاری حرکت crosshair
-			// chart.subscribeCrosshairMove((param) => {
-			// 	if (param.time) {
-			// 		const candlePriceData =
-			// 			param.seriesData.get(candlestickSeries);
-			// 		if (
-			// 			JSON.stringify(candlePriceData) !==
-			// 			JSON.stringify(prevCandlePrice.current)
-			// 		) {
-			// 			setCandlePrice(candlePriceData);
-			// 			prevCandlePrice.current = candlePriceData;
-			// 		}
+			chart.subscribeCrosshairMove((param) => {
+				if (param.time) {
+					const candlePriceData =
+						param.seriesData.get(candlestickSeries);
+					if (
+						JSON.stringify(candlePriceData) !==
+						JSON.stringify(prevCandlePrice.current)
+					) {
+						setCandlePrice(candlePriceData);
+						prevCandlePrice.current = candlePriceData;
+					}
 
-			// 		const linePriceData = param.seriesData.get(lineSeries);
-			// 		if (
-			// 			JSON.stringify(linePriceData) !==
-			// 			JSON.stringify(prevLinePrice.current)
-			// 		) {
-			// 			setLinePrice(linePriceData);
-			// 			prevLinePrice.current = linePriceData;
-			// 		}
+					// const linePriceData = param.seriesData.get(lineSeries);
+					// if (
+					// 	JSON.stringify(linePriceData) !==
+					// 	JSON.stringify(prevLinePrice.current)
+					// ) {
+					// 	setLinePrice(linePriceData);
+					// 	prevLinePrice.current = linePriceData;
+					// }
 
-			// 		const coordinate = lineSeries.priceToCoordinate(
-			// 			linePriceData?.value
-			// 		);
+					// const coordinate = candlestickSeries.priceToCoordinate(
+					// 	candlePriceData?.open
+					// );
 
-			// 		tooltip
-			// 		const shiftedCoordinate = param.point?.x;
+					// tooltip
+					// const shiftedCoordinate = param.point?.x;
 
-			// 		if (tooltipRef.current) {
-			// 			tooltipRef.current.style.left =
-			// 				shiftedCoordinate + "px";
-			// 			tooltipRef.current.style.top = coordinate + "px";
-			// 		}
+					// if (tooltipRef.current) {
+					// 	tooltipRef.current.style.left =
+					// 		shiftedCoordinate + "px";
+					// 	tooltipRef.current.style.top = coordinate + "px";
+					// }
 
-			// 		setCurrentTime(
-			// 			param.time
-			// 				? new Date(param.time).toLocaleDateString()
-			// 				: null
-			// 		);
+					setCurrentTime(
+						param.time
+							? new Date(param.time).toLocaleDateString()
+							: null
+					);
 
-			// 		setShowTooltip(true);
-			// 	} else {
-			// 		setCandlePrice(null);
-			// setLinePrice(null);
-			// 		prevCandlePrice.current = null;
-			// prevLinePrice.current = null;
-			// 		setShowTooltip(false);
-			// 	}
-			// });
+					// setShowTooltip(true);
+				} else {
+					setCandlePrice(null);
+					// setLinePrice(null);
+					prevCandlePrice.current = null;
+					// prevLinePrice.current = null;
+					// setShowTooltip(false);
+				}
+			});
 
 			// تنظیم تناسب اندازه چارت
 			chart.timeScale().fitContent();
@@ -317,19 +374,19 @@ const Page = ({
 				}`}
 			>
 				<h3>Geniobits</h3>
-				<p>{linePrice?.value.toFixed(2)}</p>
+				<p>{candlePrice?.open.toFixed(2)}</p>
 				<p>{currentTime}</p>
 			</div> */}
 			<div className="absolute left-5 z-20 text-white">
 				<div>LightWeight Charts</div>
-				{/* {candlePrice && (
+				{candlePrice && (
 					<div className="flex items-center gap-3">
 						<div>Open: {candlePrice.open}</div>
 						<div>High: {candlePrice.high}</div>
 						<div>Low: {candlePrice.low}</div>
 						<div>Close: {candlePrice.close}</div>
 					</div>
-				)} */}
+				)}
 				{/* {linePrice && <div>Value: {linePrice.value.toFixed(2)}</div>} */}
 			</div>
 		</div>
