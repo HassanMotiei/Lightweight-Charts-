@@ -31,7 +31,6 @@ const Page = ({
 	lowestLowTime: TimeType;
 }) => {
 	const chartContainerRef = useRef<HTMLDivElement>(null);
-	const tooltipRef = useRef<HTMLDivElement>(null);
 
 	const [highestHighPrice, setHighestHighPrice] = useState<number | null>(
 		null
@@ -41,17 +40,13 @@ const Page = ({
 	const [candlePrice, setCandlePrice] = useState<CandlestickTypes | null>(
 		null
 	);
-	const [linePrice, setLinePrice] = useState<CandlestickTypes | null>(null);
+
+	const [xAxisTimes, setXAxisTimes] = useState<TimeType[]>([]);
+	const prevXAxisTimesRef = useRef<TimeType[]>([]);
+	const [xAxisIndex, setXAxisIndex] = useState<number>(0);
 
 	const prevCandlePrice = useRef<CandlestickTypes | null>(null);
-	const prevLinePrice = useRef<CandlestickTypes | null>(null);
 	const [currentTime, setCurrentTime] = useState<string | null>(null);
-	const [showTooltip, setShowTooltip] = useState<boolean>(false);
-
-	// const initialLineData = initialCandleData.map((item) => ({
-	// 	time: item.time,
-	// 	value: (item.close + item.high) / 2,
-	// }));
 
 	// حالا مقادیر مورد نیاز را به markers اضافه می‌کنیم
 
@@ -130,7 +125,6 @@ const Page = ({
 				},
 			});
 
-			// const lineSeries = chart.addLineSeries(); // ایجاد یک سری خطی برای نمودار خطی
 			const candlestickSeries = chart.addCandlestickSeries(); // ایجاد یک سری کندل‌استیک برای نمودار کندل‌استیک
 
 			// تنظیم تنظیمات مختلف برای نمودار کندل‌استیک
@@ -146,13 +140,6 @@ const Page = ({
 				priceLineVisible: false,
 			});
 
-			// تنظیم تنظیمات برای نمودار خطی
-			// lineSeries.applyOptions({
-			// 	color: "#2962FF", // رنگ خط
-			// 	lineWidth: 1, // عرض خط
-			// 	priceScaleId: "left", // شناسه محور قیمت
-			// });
-
 			// تنظیم تنظیمات مختلف برای محورهای قیمت
 			chart.priceScale("right").applyOptions({
 				borderColor: "#71649C", // رنگ حاشیه محور قیمت سمت راست
@@ -163,21 +150,6 @@ const Page = ({
 					bottom: 0.2,
 				},
 			});
-			// chart.applyOptions({
-			// 	rightPriceScale: {
-			// 		visible: true, // نمایش محور قیمت سمت راست
-			// 		borderColor: "#71649C", // رنگ حاشیه محور قیمت سمت راست
-			// 		autoScale: false, // disables auto scaling based on visible content
-			// 		scaleMargins: {
-			// 			top: 0.1,
-			// 			bottom: 0.2,
-			// 		},
-			// 	},
-			// 	leftPriceScale: {
-			// 		visible: false, // نمایش محور قیمت سمت چپ
-			// 		borderColor: "#71649C", // رنگ حاشیه محور قیمت سمت چپ
-			// 	},
-			// });
 
 			// تنظیم تنظیمات برای محور زمان
 			chart.timeScale().applyOptions({
@@ -259,7 +231,6 @@ const Page = ({
 					minimumPrice = price;
 				}
 			}
-			// const avgPrice = (maximumPrice + minimumPrice) / 2;
 
 			const lineWidth = 2;
 			const minPriceLine = {
@@ -270,14 +241,7 @@ const Page = ({
 				axisLabelVisible: true,
 				title: "min price",
 			};
-			// const avgPriceLine = {
-			// 	price: avgPrice,
-			// 	color: "white",
-			// 	lineWidth: lineWidth,
-			// 	lineStyle: 1, // LineStyle.Dotted
-			// 	axisLabelVisible: true,
-			// 	title: "ave price",
-			// };
+
 			const maxPriceLine = {
 				price: maximumPrice,
 				color: "#26a69a",
@@ -288,7 +252,6 @@ const Page = ({
 			};
 
 			candlestickSeries.createPriceLine(minPriceLine);
-			// candlestickSeries.createPriceLine(avgPriceLine);
 			candlestickSeries.createPriceLine(maxPriceLine);
 
 			// تعریف رویداد برای تغییر اندازه پنجره
@@ -302,7 +265,6 @@ const Page = ({
 
 			// تنظیم داده های اولیه برای نمودار کندل‌استیک و نمودار خطی
 			candlestickSeries.setData(initialCandleData);
-			// lineSeries.setData(initialLineData);
 
 			// اضافه کردن نشانگرها به چارت
 			candlestickSeries.setMarkers(markers);
@@ -310,6 +272,7 @@ const Page = ({
 			// اشتراک گذاری حرکت crosshair
 			chart.subscribeCrosshairMove((param) => {
 				if (param.time) {
+					const times = chart.timeScale().getVisibleRange();
 					const candlePriceData =
 						param.seriesData.get(candlestickSeries);
 					if (
@@ -320,46 +283,19 @@ const Page = ({
 						prevCandlePrice.current = candlePriceData;
 					}
 
-					// const linePriceData = param.seriesData.get(lineSeries);
-					// if (
-					// 	JSON.stringify(linePriceData) !==
-					// 	JSON.stringify(prevLinePrice.current)
-					// ) {
-					// 	setLinePrice(linePriceData);
-					// 	prevLinePrice.current = linePriceData;
-					// }
-
-					// const coordinate = candlestickSeries.priceToCoordinate(
-					// 	candlePriceData?.open
-					// );
-
-					// tooltip
-					// const shiftedCoordinate = param.point?.x;
-
-					// if (tooltipRef.current) {
-					// 	tooltipRef.current.style.left =
-					// 		shiftedCoordinate + "px";
-					// 	tooltipRef.current.style.top = coordinate + "px";
-					// }
-
 					setCurrentTime(
 						param.time
 							? new Date(param.time).toLocaleDateString()
 							: null
 					);
-
-					// setShowTooltip(true);
 				} else {
 					setCandlePrice(null);
-					// setLinePrice(null);
 					prevCandlePrice.current = null;
-					// prevLinePrice.current = null;
-					// setShowTooltip(false);
 				}
 			});
 
 			// تنظیم تناسب اندازه چارت
-			chart.timeScale().fitContent();
+			// chart.timeScale().fitContent();
 
 			// حذف چارت و رویداد گیر
 			return () => {
@@ -370,30 +306,23 @@ const Page = ({
 	}, [initialCandleData && initialCandleData.length]);
 
 	return (
-		<div ref={chartContainerRef} className="mt-5">
-			{/* <div
-				ref={tooltipRef}
-				className={`flex flex-col justify-center items-center gap-1 absolute w-32 h-24 border rounded-lg border-white z-50 text-black bg-cyan-500 ${
-					showTooltip ? "block" : "hidden"
-				}`}
-			>
-				<h3>Geniobits</h3>
-				<p>{candlePrice?.open.toFixed(2)}</p>
-				<p>{currentTime}</p>
-			</div> */}
-			<div className="absolute left-5 z-20 text-white">
-				<div>LightWeight Charts</div>
-				{candlePrice && (
-					<div className="flex items-center gap-3">
-						<div>Open: {candlePrice.open}</div>
-						<div>High: {candlePrice.high}</div>
-						<div>Low: {candlePrice.low}</div>
-						<div>Close: {candlePrice.close}</div>
-					</div>
-				)}
-				{/* {linePrice && <div>Value: {linePrice.value.toFixed(2)}</div>} */}
+		<>
+			<div ref={chartContainerRef} className="mt-5">
+				<div className="absolute left-5 z-20 text-white">
+					<div>LightWeight Charts</div>
+					<div>{highestHighPrice}</div>
+					<div>{lowestLowPrice}</div>
+					{candlePrice && (
+						<div className="flex items-center gap-3">
+							<div>Open: {candlePrice.open}</div>
+							<div>High: {candlePrice.high}</div>
+							<div>Low: {candlePrice.low}</div>
+							<div>Close: {candlePrice.close}</div>
+						</div>
+					)}
+				</div>
 			</div>
-		</div>
+		</>
 	);
 };
 
